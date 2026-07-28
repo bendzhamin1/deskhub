@@ -1,0 +1,615 @@
+/*
+ * styles.css — оформление страницы новой вкладки.
+ * Портирование дизайна "Стартовая страница.dc.html" в обычный CSS.
+ *
+ * Все цвета/размеры заданы через CSS-переменные на #root. JS (newtab.js)
+ * меняет эти переменные при смене темы, размера карточек и свечения —
+ * ровно так же, как это делал applyVars() в исходном прототипе.
+ */
+
+/* Inter вшит в пакет (variable-шрифт, веса 100–900, включая кириллицу; SIL OFL).
+ * Локальный файл вместо Google Fonts CDN: мгновенная первая отрисовка без
+ * сетевого запроса, полная работа офлайн и ни одного обращения к внешним
+ * серверам ради шрифта. */
+@font-face {
+  font-family: "Inter";
+  src: url("../assets/fonts/InterVariable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+
+/* Шрифтовой стек кроссплатформенный: сначала наш Inter, затем СИСТЕМНЫЙ шрифт
+ * каждой ОС как фолбэк (если Inter не загрузился) — на macOS это San Francisco
+ * (-apple-system / BlinkMacSystemFont), на Windows — Segoe UI. Сглаживание
+ * (-webkit-font-smoothing / -moz-osx-font-smoothing) делает текст тонким и
+ * чётким на macOS-ретине, как в макете; на Windows свойство игнорируется. */
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.ntp-root {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  /* единая ширина контента: поисковая строка и сетка не шире неё */
+  --content-width: min(1040px, 92vw);
+
+  /* размеры карточек (medium по умолчанию; JS переопределяет) */
+  --card-size: 172px;
+  --card-h: 108px;
+  --gap: 18px;
+  --radius: 22px;
+  --folder-radius: 18px;
+
+  /* тема (light по умолчанию; JS переопределяет) */
+  --page-bg: linear-gradient(180deg, #ffffff 0%, #f7f7f9 55%, #eef0f3 100%);
+  --glow: radial-gradient(60% 45% at 50% 80%, rgba(124, 92, 255, .22), transparent 72%);
+  --text: #1a1a1f;
+  --text-dim: #6a6a72;
+  --search-bg: #ffffff;
+  --search-text: #1a1a1a;
+  --search-ph: #9a9aa0;
+  --search-border: 1px solid rgba(0, 0, 0, .07);
+  --empty: #e7e7ec;
+  --panel: rgba(0, 0, 0, .04);
+  --panel-border: rgba(0, 0, 0, .08);
+  --modal-bg: #ffffff;
+  --track: rgba(0, 0, 0, .12);
+  --thumb: #7c5cff;
+  --accent: #7c5cff;
+  --folder-card: rgba(0, 0, 0, .05);
+  --folder-border: rgba(0, 0, 0, .08);
+
+  background: #ffffff;
+  color: var(--text);
+}
+
+/* Полосы прокрутки. На Windows системный скроллбар широкий и серый — он
+ * заметно портит вид модалок (настройки/редактор с overflow). На macOS —
+ * тонкий overlay. Приводим прокрутку к единому аккуратному виду в обеих ОС
+ * (Chromium/WebKit). scrollbar-width/-color — на случай Firefox-Chromium сборок. */
+.ntp-settings-modal, .ntp-suggest, .ntp-folder-panel {
+  scrollbar-width: thin;
+  scrollbar-color: var(--track) transparent;
+}
+.ntp-settings-modal::-webkit-scrollbar,
+.ntp-suggest::-webkit-scrollbar,
+.ntp-folder-panel::-webkit-scrollbar { width: 10px; height: 10px; }
+.ntp-settings-modal::-webkit-scrollbar-track,
+.ntp-suggest::-webkit-scrollbar-track,
+.ntp-folder-panel::-webkit-scrollbar-track { background: transparent; }
+.ntp-settings-modal::-webkit-scrollbar-thumb,
+.ntp-suggest::-webkit-scrollbar-thumb,
+.ntp-folder-panel::-webkit-scrollbar-thumb {
+  background: var(--track); border-radius: 8px;
+  border: 3px solid transparent; background-clip: padding-box;
+}
+.ntp-settings-modal::-webkit-scrollbar-thumb:hover,
+.ntp-suggest::-webkit-scrollbar-thumb:hover,
+.ntp-folder-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--text-dim); background-clip: padding-box;
+}
+
+.ntp-bg   { position: absolute; inset: 0; background: var(--page-bg); z-index: 0; }
+.ntp-glow { position: absolute; inset: 0; background: var(--glow); z-index: 0; pointer-events: none; }
+
+/* кнопка-иконка (настройки, закрытие) */
+.ntp-icbtn {
+  border: 1px solid var(--panel-border);
+  background: var(--panel);
+  color: var(--text-dim);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .12s ease, color .12s ease, transform .12s ease;
+}
+.ntp-icbtn:hover { transform: translateY(-1px); }
+
+.ntp-settings-btn {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  z-index: 6;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+}
+
+/* центральная колонка */
+.ntp-center {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px 80px;
+}
+.ntp-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  width: 100%;
+}
+
+/* логотип: просто векторный знак, без подложки, перекрашивается под тему */
+.ntp-logo { display: flex; align-items: center; justify-content: center; }
+.ntp-logo-img {
+  height: 34px;                  /* вордмарк DeskHub широкий — чуть выше «B» */
+  width: auto;
+  display: block;
+  color: var(--text);            /* fill="currentColor" внутри SVG */
+  opacity: var(--logo-opacity, 0.45);
+}
+
+/* часы и дата */
+.ntp-clock { text-align: center; line-height: 1; user-select: none; }
+.ntp-clock[hidden] { display: none; }
+.ntp-clock-time {
+  font-size: 72px;
+  font-weight: 600;
+  letter-spacing: -1px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.ntp-clock-date {
+  margin-top: 10px;
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--text-dim);
+  text-transform: capitalize;
+}
+
+/* поиск */
+.ntp-searchwrap { position: relative; width: 100%; max-width: var(--content-width); }
+.ntp-search {
+  display: flex;
+  align-items: center;
+  height: 58px;
+  padding: 0 12px 0 22px;
+  background: var(--search-bg);
+  border: var(--search-border);
+  border-radius: 29px;
+  box-shadow: 0 14px 50px rgba(0, 0, 0, .18);
+}
+.ntp-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 16px;
+  color: var(--search-text);
+  font-family: inherit;
+}
+.ntp-search-input::placeholder { color: var(--search-ph); }
+.ntp-search-go {
+  width: 40px; height: 40px;
+  border: none; background: transparent;
+  border-radius: 50%; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .12s ease;
+}
+.ntp-search-go:hover { background: rgba(0, 0, 0, .05); }
+
+/* выпадающие подсказки */
+.ntp-suggest {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0; right: 0;
+  background: var(--search-bg);
+  border: var(--search-border);
+  border-radius: 18px;
+  box-shadow: 0 14px 50px rgba(0, 0, 0, .18);
+  overflow: hidden;
+  z-index: 5;
+  padding: 6px;
+  animation: ntpFade .12s ease;
+}
+.ntp-suggest[hidden] { display: none; }
+.ntp-suggest-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; border-radius: 12px;
+  cursor: pointer; color: var(--search-text);
+  font-size: 15px;
+}
+.ntp-suggest-item.active,
+.ntp-suggest-item:hover { background: rgba(0, 0, 0, .05); }
+.ntp-suggest-ico {
+  width: 20px; height: 20px; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  color: #9a9aa0;
+}
+.ntp-suggest-ico img { width: 18px; height: 18px; border-radius: 4px; object-fit: cover; }
+.ntp-suggest-text {
+  flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ntp-suggest-sub { color: #9a9aa0; font-size: 12px; flex: 0 0 auto; }
+.ntp-suggest-del {
+  flex: 0 0 auto;
+  width: 22px; height: 22px;
+  border: none; background: transparent;
+  color: #9a9aa0; font-size: 16px; line-height: 1;
+  cursor: pointer; border-radius: 50%;
+}
+.ntp-suggest-del:hover { background: rgba(0, 0, 0, .08); color: #555; }
+
+/* сетка карточек: не шире поисковой строки; число колонок зависит от размера
+   карточки (компакт — больше, крупные — меньше), но строка не выходит за рамку */
+.ntp-grid {
+  width: 100%;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, var(--card-size));
+  gap: var(--gap);
+  justify-content: center;
+}
+.ntp-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.ntp-card {
+  position: relative;
+  width: var(--card-size);
+  height: var(--card-h);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, .14);
+  transition: transform .14s ease, box-shadow .14s ease;
+  contain: layout paint style; /* изоляция отрисовки карточки — меньше перерисовок */
+}
+.ntp-card:hover { transform: translateY(-3px); }
+.ntp-card[data-kind="folder"] { border-radius: var(--folder-radius); }
+.ntp-card.dragging { opacity: .4; }
+.ntp-cell.drop-before .ntp-card { box-shadow: -6px 0 0 -2px var(--accent), 0 6px 22px rgba(0,0,0,.14); }
+.ntp-cell.drop-after  .ntp-card { box-shadow:  6px 0 0 -2px var(--accent), 0 6px 22px rgba(0,0,0,.14); }
+/* подсветка папки, когда ссылку тащат внутрь неё */
+.ntp-cell.drop-into .ntp-card {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  transform: scale(1.06);
+}
+
+/* карточка-приложение (прямая ссылка) */
+.ntp-app {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 700; letter-spacing: .4px;
+}
+.ntp-app svg { width: 42%; height: 42%; }
+
+/* карточка-папка: превью 2x2 */
+.ntp-folder {
+  width: 100%; height: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 8px;
+  padding: 11px;
+  background: var(--folder-card);
+  border: 1px solid var(--folder-border);
+}
+.ntp-folder-tile {
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; letter-spacing: .3px;
+  overflow: hidden;
+}
+
+/* пустая карточка */
+.ntp-empty {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--empty);
+}
+.ntp-empty svg { width: 22px; height: 22px; opacity: .3; }
+
+.ntp-card-label { font-size: 13px; color: var(--text-dim); }
+
+/* ----- модальные окна ----- */
+.ntp-scrim {
+  position: fixed; inset: 0; z-index: 40;
+  animation: ntpFade .14s ease;
+}
+.ntp-scrim--folder   { background: rgba(0, 0, 0, .18); }
+.ntp-scrim--settings {
+  background: rgba(0, 0, 0, .4);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+  animation: ntpFade .15s ease;
+}
+
+/* всплывающая панель папки (позиционируется из JS).
+   Фон — такой же, как у закрытой папки (var(--folder-card)), поэтому ползунок
+   «Прозрачность папок» влияет и на открытую папку. backdrop-filter подмешивает
+   фон страницы, чтобы плитки/подписи оставались читаемыми при любой прозрачности. */
+.ntp-folder-panel {
+  position: fixed;
+  width: var(--content-width);   /* как ширина поисковой строки */
+  max-height: calc(100vh - 28px);
+  overflow-y: auto;
+  background: var(--folder-card);
+  border: 1px solid var(--folder-border);
+  border-radius: var(--folder-radius);
+  padding: 24px;
+  z-index: 41;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, .35);
+  backdrop-filter: blur(28px) saturate(1.4);
+  -webkit-backdrop-filter: blur(28px) saturate(1.4);
+  animation: ntpPop .18s ease;
+}
+.ntp-folder-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 18px;
+}
+.ntp-folder-head-l { display: flex; align-items: center; gap: 11px; }
+.ntp-folder-mini {
+  width: 32px; height: 32px; border-radius: 9px;
+  display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+  gap: 3px; padding: 5px;
+  background: var(--folder-card); border: 1px solid var(--folder-border);
+}
+.ntp-folder-mini div { border-radius: 3px; }
+.ntp-folder-title { font-size: 19px; font-weight: 700; color: var(--text); }
+.ntp-x {
+  width: 32px; height: 32px; border: none; border-radius: 50%;
+  background: var(--panel); color: var(--text-dim);
+  font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+/* плитки внутри папки — прямоугольные, как карточки на рабочем столе,
+   и раскладываются сеткой на всю ширину панели */
+.ntp-folder-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, var(--card-size));
+  gap: var(--gap);
+  justify-content: center;
+}
+.ntp-mtile {
+  width: var(--card-size);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  cursor: pointer;
+  transition: transform .12s ease;
+}
+.ntp-mtile:hover { transform: translateY(-2px); }
+.ntp-mtile.dragging { opacity: .4; }
+.ntp-mtile-ico {
+  position: relative;
+  width: 100%; height: var(--card-h); border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 700; letter-spacing: .4px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .18);
+  overflow: hidden;
+}
+.ntp-mtile-name { font-size: 12px; color: var(--text-dim); text-align: center; line-height: 1.2; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* плитка "добавить" внутри папки */
+.ntp-mtile-add .ntp-mtile-ico {
+  background: var(--panel);
+  border: 1px dashed var(--panel-border);
+  color: var(--text-dim);
+  box-shadow: none;
+  font-size: 26px;
+}
+
+/* кнопка удаления на плитке/карточке */
+.ntp-del {
+  position: absolute; top: -6px; right: -6px;
+  width: 20px; height: 20px; border-radius: 50%;
+  border: none; background: #ff4d4f; color: #fff;
+  font-size: 13px; line-height: 1; cursor: pointer;
+  display: none; align-items: center; justify-content: center;
+  z-index: 3;
+}
+.ntp-mtile:hover .ntp-del,
+.ntp-card:hover + .ntp-card-actions .ntp-del { display: flex; }
+
+/* настройки */
+.ntp-settings-modal {
+  width: 100%; max-width: 420px;
+  max-height: 88vh; overflow: auto;
+  background: var(--modal-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 26px; padding: 26px;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, .45);
+  animation: ntpPop .18s ease;
+  color: var(--text);
+}
+.ntp-settings-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 22px;
+}
+.ntp-settings-title { font-size: 20px; font-weight: 700; }
+.ntp-label {
+  font-size: 12px; font-weight: 600; letter-spacing: .4px;
+  text-transform: uppercase; color: var(--text-dim);
+  margin-bottom: 9px;
+}
+.ntp-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
+.ntp-row .ntp-val { font-size: 13px; font-weight: 600; color: var(--text); }
+.ntp-seg-group { display: flex; gap: 8px; margin-bottom: 20px; }
+.ntp-seg {
+  flex: 1; padding: 9px 0;
+  border: 1px solid var(--panel-border); border-radius: 11px;
+  font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+  background: var(--panel); color: var(--text);
+  transition: background .12s ease, color .12s ease;
+}
+.ntp-seg.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* выпадающий список (поисковая система) */
+.ntp-select {
+  width: 100%;
+  margin-bottom: 20px;
+  padding: 11px 14px;
+  border: 1px solid var(--panel-border);
+  border-radius: 11px;
+  background: var(--panel);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ntp-select option { color: #1a1a1a; }
+
+/* поля ввода и кнопка в модалке добавления */
+.ntp-input {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 15px;
+  outline: none;
+}
+.ntp-input::placeholder { color: var(--text-dim); }
+.ntp-input:focus { border-color: var(--accent); }
+.ntp-btn-primary {
+  width: 100%;
+  margin-top: 8px;
+  padding: 13px 0;
+  border: none;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ntp-btn-primary:hover { filter: brightness(1.06); }
+.ntp-btn-primary.danger { background: #e4405f; }
+
+/* второстепенные кнопки (обои, экспорт/импорт) — в ряд по ширине */
+.ntp-btn-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.ntp-btn-ghost {
+  flex: 1; padding: 11px 0;
+  border: 1px solid var(--panel-border); border-radius: 11px;
+  background: var(--panel); color: var(--text);
+  font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: background .12s ease;
+}
+.ntp-btn-ghost:hover { background: var(--track); }
+.ntp-hint { font-size: 12px; line-height: 1.45; color: var(--text-dim); margin-bottom: 6px; }
+
+/* модалки подтверждения / информации */
+.ntp-confirm-text { font-size: 15px; line-height: 1.5; color: var(--text); margin-bottom: 20px; }
+.ntp-confirm-row { display: flex; gap: 10px; justify-content: flex-end; align-items: center; }
+
+/* редактор внешнего вида закладки */
+.ntp-edit-previewwrap { display: flex; justify-content: center; margin-bottom: 20px; }
+.ntp-edit-preview {
+  width: 104px; height: 68px; border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 20px; overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+}
+.ntp-color-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.ntp-color-label { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--text); cursor: pointer; }
+.ntp-color-label input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+.ntp-color {
+  width: 52px; height: 34px; padding: 2px;
+  border: 1px solid var(--panel-border); border-radius: 9px;
+  background: var(--panel); cursor: pointer;
+}
+.danger-text { color: #e4405f; }
+
+/* переключатель (toggle) для настроек */
+.ntp-toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+.ntp-toggle-row .ntp-toggle-label { font-size: 14px; font-weight: 600; color: var(--text); }
+.ntp-switch {
+  position: relative;
+  width: 46px; height: 26px;
+  border: none; border-radius: 13px;
+  background: var(--track); cursor: pointer;
+  transition: background .15s ease;
+  flex: 0 0 auto;
+}
+.ntp-switch::after {
+  content: ""; position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+  transition: transform .15s ease;
+}
+.ntp-switch.on { background: var(--accent); }
+.ntp-switch.on::after { transform: translateX(20px); }
+
+.ntp-range {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 5px; border-radius: 5px;
+  background: var(--track); outline: none;
+  margin-bottom: 20px; accent-color: var(--accent);
+}
+.ntp-range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #fff; border: 2px solid var(--thumb);
+  cursor: pointer; box-shadow: 0 1px 4px rgba(0, 0, 0, .3);
+}
+.ntp-range::-moz-range-thumb {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #fff; border: 2px solid var(--thumb); cursor: pointer;
+}
+
+.ntp-glow-group { display: flex; gap: 12px; }
+.ntp-glow-swatch {
+  width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+  border: 3px solid transparent;
+}
+.ntp-glow-swatch.active { border-color: var(--text); }
+
+@keyframes ntpPop  { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: scale(1); } }
+@keyframes ntpFade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- режим для слабых машин ----------
+   Отключаем самое дорогое для GPU: живое размытие фона (backdrop-filter),
+   крупные тени и hover-анимации. На нормальном железе этот класс не ставится,
+   поэтому качество там не страдает. */
+.perf-lite .ntp-folder-panel {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: var(--modal-bg);
+}
+.perf-lite .ntp-scrim--settings {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.perf-lite .ntp-glow { display: none; }
+.perf-lite .ntp-card,
+.perf-lite .ntp-mtile-ico,
+.perf-lite .ntp-search { box-shadow: 0 2px 8px rgba(0, 0, 0, .18); }
+.perf-lite .ntp-card:hover,
+.perf-lite .ntp-mtile:hover,
+.perf-lite .ntp-icbtn:hover { transform: none; }
+.perf-lite * { transition-duration: .001s !important; animation-duration: .001s !important; }
+
+/* Уважаем системную настройку «уменьшить движение». */
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: .001s !important; animation-duration: .001s !important; }
+  .ntp-card:hover, .ntp-mtile:hover, .ntp-icbtn:hover { transform: none; }
+}
