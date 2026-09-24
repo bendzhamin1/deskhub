@@ -74,6 +74,23 @@ body {
   color: var(--text);
 }
 
+/* Тёмная тема ДО того, как отработает newtab.js: атрибут ставит js/boot.js в
+ * <head> по запомненной теме. Нужен только фон и цвет текста первого кадра —
+ * дальше applyVars() перекрывает всё инлайн-переменными на #root. */
+html[data-theme="dark"] { color-scheme: dark; }
+html[data-theme="dark"] body { background: #0b0b0d; }
+html[data-theme="dark"] .ntp-root {
+  --page-bg: linear-gradient(180deg, #1b1b1f 0%, #131316 45%, #0b0b0d 100%);
+  --text: #f2f2f3;
+  --text-dim: #9a9aa2;
+  --empty: #34343a;
+  --panel: rgba(255, 255, 255, .05);
+  --panel-border: rgba(255, 255, 255, .09);
+  --modal-bg: #1c1c20;
+  --track: rgba(255, 255, 255, .14);
+  background: #0b0b0d;
+}
+
 /* Полосы прокрутки. На Windows системный скроллбар широкий и серый — он
  * заметно портит вид модалок (настройки/редактор с overflow). На macOS —
  * тонкий overlay. Приводим прокрутку к единому аккуратному виду в обеих ОС
@@ -119,7 +136,7 @@ body {
 .ntp-settings-btn {
   position: absolute;
   top: 16px;
-  right: 18px;
+  inset-inline-end: 18px; /* справа, а в RTL (арабский) — слева */
   z-index: 6;
   width: 42px;
   height: 42px;
@@ -179,7 +196,7 @@ body {
   display: flex;
   align-items: center;
   height: 58px;
-  padding: 0 12px 0 22px;
+  padding-inline: 22px 12px;
   background: var(--search-bg);
   border: var(--search-border);
   border-radius: 29px;
@@ -229,6 +246,10 @@ body {
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .ntp-suggest-sub { color: #9a9aa0; font-size: 12px; flex: 0 0 auto; }
+/* у текста подсказки dir="auto" (латиница внутри арабского и наоборот), но
+ * прижимаем его к началу строки по направлению СТРАНИЦЫ, а не самого текста */
+[dir="rtl"] .ntp-suggest-text { text-align: right; }
+[dir="ltr"] .ntp-suggest-text { text-align: left; }
 .ntp-suggest-del {
   flex: 0 0 auto;
   width: 22px; height: 22px;
@@ -271,6 +292,9 @@ body {
 .ntp-card.dragging { opacity: .4; }
 .ntp-cell.drop-before .ntp-card { box-shadow: -6px 0 0 -2px var(--accent), 0 6px 22px rgba(0,0,0,.14); }
 .ntp-cell.drop-after  .ntp-card { box-shadow:  6px 0 0 -2px var(--accent), 0 6px 22px rgba(0,0,0,.14); }
+/* в RTL «до» — справа, «после» — слева */
+[dir="rtl"] .ntp-cell.drop-before .ntp-card { box-shadow:  6px 0 0 -2px var(--accent), 0 6px 22px rgba(0,0,0,.14); }
+[dir="rtl"] .ntp-cell.drop-after  .ntp-card { box-shadow: -6px 0 0 -2px var(--accent), 0 6px 22px rgba(0,0,0,.14); }
 /* подсветка папки, когда ссылку тащат внутрь неё */
 .ntp-cell.drop-into .ntp-card {
   outline: 3px solid var(--accent);
@@ -403,7 +427,7 @@ body {
 
 /* кнопка удаления на плитке/карточке */
 .ntp-del {
-  position: absolute; top: -6px; right: -6px;
+  position: absolute; top: -6px; inset-inline-end: -6px;
   width: 20px; height: 20px; border-radius: 50%;
   border: none; background: #ff4d4f; color: #fff;
   font-size: 13px; line-height: 1; cursor: pointer;
@@ -438,7 +462,8 @@ body {
 .ntp-row .ntp-val { font-size: 13px; font-weight: 600; color: var(--text); }
 .ntp-seg-group { display: flex; gap: 8px; margin-bottom: 20px; }
 .ntp-seg {
-  flex: 1; padding: 9px 0;
+  flex: 1; min-width: 0; padding: 9px 6px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; /* длинные переводы */
   border: 1px solid var(--panel-border); border-radius: 11px;
   font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
   background: var(--panel); color: var(--text);
@@ -446,7 +471,7 @@ body {
 }
 .ntp-seg.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-/* выпадающий список (поисковая система) */
+/* выпадающий список (язык интерфейса) */
 .ntp-select {
   width: 100%;
   margin-bottom: 20px;
@@ -476,6 +501,10 @@ body {
   outline: none;
 }
 .ntp-input::placeholder { color: var(--text-dim); }
+/* Адреса всегда пишутся слева направо (dir="ltr"), названия — по содержимому
+ * (dir="auto"). Но пока поле пустое, подсказка должна стоять у начала строки
+ * по языку интерфейса — в арабском справа. */
+[dir="rtl"] .ntp-input:placeholder-shown { text-align: right; }
 .ntp-input:focus { border-color: var(--accent); }
 .ntp-btn-primary {
   width: 100%;
@@ -496,7 +525,7 @@ body {
 /* второстепенные кнопки (обои, экспорт/импорт) — в ряд по ширине */
 .ntp-btn-row { display: flex; gap: 8px; margin-bottom: 14px; }
 .ntp-btn-ghost {
-  flex: 1; padding: 11px 0;
+  flex: 1; padding: 11px 8px;
   border: 1px solid var(--panel-border); border-radius: 11px;
   background: var(--panel); color: var(--text);
   font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
@@ -542,13 +571,14 @@ body {
   flex: 0 0 auto;
 }
 .ntp-switch::after {
-  content: ""; position: absolute; top: 3px; left: 3px;
+  content: ""; position: absolute; top: 3px; inset-inline-start: 3px;
   width: 20px; height: 20px; border-radius: 50%;
   background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
   transition: transform .15s ease;
 }
 .ntp-switch.on { background: var(--accent); }
 .ntp-switch.on::after { transform: translateX(20px); }
+[dir="rtl"] .ntp-switch.on::after { transform: translateX(-20px); }
 
 .ntp-range {
   -webkit-appearance: none; appearance: none;

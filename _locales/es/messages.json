@@ -1,0 +1,214 @@
+{
+  "localeCode": {
+    "message": "es",
+    "description": "Service string: code of this locale folder. Used to detect which locale Chrome picked. Do not translate."
+  },
+  "extDescription": {
+    "message": "Carpetas y orden de marcadores en la nueva pestaña: interfaz personalizable y sincronización entre dispositivos",
+    "description": "Extension description in Chrome and the Web Store, max 132 characters."
+  },
+  "pageTitle": {
+    "message": "Nueva pestaña"
+  },
+  "settings": {
+    "message": "Configuración"
+  },
+  "close": {
+    "message": "Cerrar"
+  },
+  "searchPlaceholder": {
+    "message": "Busca o escribe una URL"
+  },
+  "removeFromHistory": {
+    "message": "Quitar del historial"
+  },
+  "add": {
+    "message": "Añadir"
+  },
+  "delete": {
+    "message": "Eliminar"
+  },
+  "newBookmark": {
+    "message": "Nuevo marcador"
+  },
+  "whatToAdd": {
+    "message": "Qué añadir"
+  },
+  "kindSite": {
+    "message": "Sitio"
+  },
+  "kindFolder": {
+    "message": "Carpeta"
+  },
+  "siteUrlExample": {
+    "message": "Dirección del sitio (p. ej., github.com)"
+  },
+  "nameOptional": {
+    "message": "Nombre (opcional)"
+  },
+  "folderName": {
+    "message": "Nombre de la carpeta"
+  },
+  "editBookmark": {
+    "message": "Editar marcador"
+  },
+  "name": {
+    "message": "Nombre"
+  },
+  "siteUrl": {
+    "message": "Dirección del sitio"
+  },
+  "address": {
+    "message": "Dirección"
+  },
+  "logoUrl": {
+    "message": "URL del logotipo"
+  },
+  "logoUrlPlaceholder": {
+    "message": "URL del logotipo (vacío = automático)"
+  },
+  "tileBackground": {
+    "message": "Fondo del icono"
+  },
+  "customBgColor": {
+    "message": "Color de fondo propio"
+  },
+  "resetToAuto": {
+    "message": "Volver a automático"
+  },
+  "confirmDeleteItem": {
+    "message": "¿Eliminar «$TITLE$»?",
+    "placeholders": {
+      "title": {
+        "content": "$1",
+        "example": "GitHub"
+      }
+    }
+  },
+  "save": {
+    "message": "Guardar"
+  },
+  "editFolder": {
+    "message": "Editar carpeta"
+  },
+  "folderColor": {
+    "message": "Color de la carpeta"
+  },
+  "customFolderColor": {
+    "message": "Color de carpeta propio"
+  },
+  "colorOpacity": {
+    "message": "Opacidad del color"
+  },
+  "resetColor": {
+    "message": "Restablecer color"
+  },
+  "deleteFolder": {
+    "message": "Eliminar carpeta"
+  },
+  "confirmDeleteFolder": {
+    "message": "¿Eliminar la carpeta «$TITLE$»?",
+    "placeholders": {
+      "title": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "showClock": {
+    "message": "Mostrar fecha y hora"
+  },
+  "language": {
+    "message": "Idioma"
+  },
+  "languageAuto": {
+    "message": "Automático ($LANG$)",
+    "placeholders": {
+      "lang": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "theme": {
+    "message": "Tema"
+  },
+  "themeLight": {
+    "message": "Claro"
+  },
+  "themeDark": {
+    "message": "Oscuro"
+  },
+  "themeSystem": {
+    "message": "Sistema"
+  },
+  "cardSize": {
+    "message": "Tamaño de las tarjetas"
+  },
+  "sizeCompact": {
+    "message": "Compacto"
+  },
+  "sizeMedium": {
+    "message": "Mediano"
+  },
+  "sizeLarge": {
+    "message": "Grande"
+  },
+  "folderOpacity": {
+    "message": "Opacidad de las carpetas"
+  },
+  "glowIntensity": {
+    "message": "Intensidad del brillo"
+  },
+  "glowColor": {
+    "message": "Color del brillo"
+  },
+  "wallpaper": {
+    "message": "Fondo de pantalla"
+  },
+  "wallpaperUpload": {
+    "message": "Subir fondo"
+  },
+  "wallpaperReplace": {
+    "message": "Cambiar fondo"
+  },
+  "wallpaperRemove": {
+    "message": "Quitar"
+  },
+  "foldersAndBookmarks": {
+    "message": "Carpetas y marcadores"
+  },
+  "exportToFile": {
+    "message": "Exportar a archivo"
+  },
+  "importFromFile": {
+    "message": "Importar desde archivo"
+  },
+  "exportHint": {
+    "message": "Exporta un archivo y envíalo a un amigo: tendrá las mismas carpetas, marcadores y apariencia."
+  },
+  "importUnreadable": {
+    "message": "No se puede leer el archivo: no es un archivo de configuración."
+  },
+  "importNotConfig": {
+    "message": "Este no es un archivo de configuración de DeskHub."
+  },
+  "importConfirm": {
+    "message": "La importación reemplazará tus carpetas y marcadores actuales por los del archivo. ¿Continuar?"
+  },
+  "importAction": {
+    "message": "Importar"
+  },
+  "importFailed": {
+    "message": "No se pudo importar el archivo."
+  },
+  "yes": {
+    "message": "Sí"
+  },
+  "cancel": {
+    "message": "Cancelar"
+  },
+  "gotIt": {
+    "message": "Entendido"
+  }
+}

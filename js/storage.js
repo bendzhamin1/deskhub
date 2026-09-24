@@ -29,7 +29,8 @@ const STORAGE_KEY = "desktop:v3";
  * State {
  *   version: number,
  *   settings: {
- *     theme: "light" | "dark",
+ *     theme: "light" | "dark" | "system",   // system — как в настройках ОС/Chrome
+ *     language: "auto" | "en" | "ru" | …,   // auto — язык интерфейса Chrome (см. i18n.js)
  *     cardSize: "compact" | "medium" | "large",
  *     glow: string,            // цвет свечения / акцент
  *     glowIntensity: number,   // 0..200 (%)
@@ -49,7 +50,8 @@ const STORAGE_KEY = "desktop:v3";
 const DEFAULT_STATE = {
   version: 2,
   settings: {
-    theme: "light",
+    theme: "system",
+    language: "auto",
     cardSize: "medium",
     glow: "#7c5cff",
     glowIntensity: 100,
@@ -245,13 +247,16 @@ async function saveIconData(map) {
 const CONFIG_MAGIC = "yandex-desktop-config";
 const CONFIG_VERSION = 1;
 
-/** Собрать объект конфигурации из состояния (+ обои передаются отдельно). */
+/** Собрать объект конфигурации из состояния (+ обои передаются отдельно).
+ * Язык в файл не кладём: это настройка человека, а не набора закладок — друг
+ * из другой страны не должен получить интерфейс на чужом языке. */
 function buildConfig(state, wallpaper) {
+  const { language, ...settings } = state.settings;
   return {
     app: CONFIG_MAGIC,
     version: CONFIG_VERSION,
     exportedAt: new Date().toISOString(),
-    settings: state.settings,
+    settings,
     cards: state.cards,
     wallpaper: wallpaper || null
   };
@@ -259,17 +264,20 @@ function buildConfig(state, wallpaper) {
 
 /**
  * Применить импортированный конфиг: ЗАМЕНЯЕТ текущие настройки и карточки.
- * Возвращает { state, wallpaper } или бросает ошибку, если файл не наш/битый.
+ * Возвращает { state, wallpaper } или бросает ошибку с code:"not-config", если
+ * файл не наш/битый (текст ошибки для человека подбирает интерфейс — он знает язык).
  * Обои (если есть в файле) сохраняются в local через saveWallpaper.
+ * Язык интерфейса остаётся текущим, даже если в файле (старого формата) он есть.
  */
 async function applyConfig(data) {
   if (!data || data.app !== CONFIG_MAGIC || !Array.isArray(data.cards)) {
-    throw new Error("Это не файл конфигурации рабочего стола");
+    throw Object.assign(new Error("not a DeskHub config"), { code: "not-config" });
   }
+  const { language } = (await loadState()).settings;
   const state = {
     ...structuredClone(DEFAULT_STATE),
     version: DEFAULT_STATE.version,
-    settings: { ...DEFAULT_STATE.settings, ...(data.settings || {}) },
+    settings: { ...DEFAULT_STATE.settings, ...(data.settings || {}), language },
     cards: data.cards
   };
   await rawSet(state);

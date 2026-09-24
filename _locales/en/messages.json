@@ -1,0 +1,214 @@
+{
+  "localeCode": {
+    "message": "en",
+    "description": "Service string: code of this locale folder. Used to detect which locale Chrome picked. Do not translate."
+  },
+  "extDescription": {
+    "message": "Bookmark folders and sorting on your new tab page: a customizable interface and workspace sync across devices",
+    "description": "Extension description in Chrome and the Web Store, max 132 characters."
+  },
+  "pageTitle": {
+    "message": "New Tab"
+  },
+  "settings": {
+    "message": "Settings"
+  },
+  "close": {
+    "message": "Close"
+  },
+  "searchPlaceholder": {
+    "message": "Search or type a URL"
+  },
+  "removeFromHistory": {
+    "message": "Remove from history"
+  },
+  "add": {
+    "message": "Add"
+  },
+  "delete": {
+    "message": "Delete"
+  },
+  "newBookmark": {
+    "message": "New bookmark"
+  },
+  "whatToAdd": {
+    "message": "What to add"
+  },
+  "kindSite": {
+    "message": "Site"
+  },
+  "kindFolder": {
+    "message": "Folder"
+  },
+  "siteUrlExample": {
+    "message": "Site address (e.g. github.com)"
+  },
+  "nameOptional": {
+    "message": "Name (optional)"
+  },
+  "folderName": {
+    "message": "Folder name"
+  },
+  "editBookmark": {
+    "message": "Edit bookmark"
+  },
+  "name": {
+    "message": "Name"
+  },
+  "siteUrl": {
+    "message": "Site address"
+  },
+  "address": {
+    "message": "Address"
+  },
+  "logoUrl": {
+    "message": "Logo URL"
+  },
+  "logoUrlPlaceholder": {
+    "message": "Logo URL (empty = auto)"
+  },
+  "tileBackground": {
+    "message": "Tile background"
+  },
+  "customBgColor": {
+    "message": "Custom background color"
+  },
+  "resetToAuto": {
+    "message": "Reset to auto"
+  },
+  "confirmDeleteItem": {
+    "message": "Delete “$TITLE$”?",
+    "placeholders": {
+      "title": {
+        "content": "$1",
+        "example": "GitHub"
+      }
+    }
+  },
+  "save": {
+    "message": "Save"
+  },
+  "editFolder": {
+    "message": "Edit folder"
+  },
+  "folderColor": {
+    "message": "Folder color"
+  },
+  "customFolderColor": {
+    "message": "Custom folder color"
+  },
+  "colorOpacity": {
+    "message": "Color opacity"
+  },
+  "resetColor": {
+    "message": "Reset color"
+  },
+  "deleteFolder": {
+    "message": "Delete folder"
+  },
+  "confirmDeleteFolder": {
+    "message": "Delete folder “$TITLE$”?",
+    "placeholders": {
+      "title": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "showClock": {
+    "message": "Show date and time"
+  },
+  "language": {
+    "message": "Language"
+  },
+  "languageAuto": {
+    "message": "Automatic ($LANG$)",
+    "placeholders": {
+      "lang": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "theme": {
+    "message": "Theme"
+  },
+  "themeLight": {
+    "message": "Light"
+  },
+  "themeDark": {
+    "message": "Dark"
+  },
+  "themeSystem": {
+    "message": "System"
+  },
+  "cardSize": {
+    "message": "Card size"
+  },
+  "sizeCompact": {
+    "message": "Compact"
+  },
+  "sizeMedium": {
+    "message": "Medium"
+  },
+  "sizeLarge": {
+    "message": "Large"
+  },
+  "folderOpacity": {
+    "message": "Folder opacity"
+  },
+  "glowIntensity": {
+    "message": "Glow intensity"
+  },
+  "glowColor": {
+    "message": "Glow color"
+  },
+  "wallpaper": {
+    "message": "Wallpaper"
+  },
+  "wallpaperUpload": {
+    "message": "Upload wallpaper"
+  },
+  "wallpaperReplace": {
+    "message": "Change wallpaper"
+  },
+  "wallpaperRemove": {
+    "message": "Remove"
+  },
+  "foldersAndBookmarks": {
+    "message": "Folders and bookmarks"
+  },
+  "exportToFile": {
+    "message": "Export to file"
+  },
+  "importFromFile": {
+    "message": "Import from file"
+  },
+  "exportHint": {
+    "message": "Export a file and send it to a friend — they’ll get the same folders, bookmarks and look."
+  },
+  "importUnreadable": {
+    "message": "Can’t read the file — it isn’t a configuration file."
+  },
+  "importNotConfig": {
+    "message": "This isn’t a DeskHub configuration file."
+  },
+  "importConfirm": {
+    "message": "Importing will replace your current folders and bookmarks with the data from the file. Continue?"
+  },
+  "importAction": {
+    "message": "Import"
+  },
+  "importFailed": {
+    "message": "Couldn’t import the file."
+  },
+  "yes": {
+    "message": "Yes"
+  },
+  "cancel": {
+    "message": "Cancel"
+  },
+  "gotIt": {
+    "message": "Got it"
+  }
+}

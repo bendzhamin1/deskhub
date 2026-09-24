@@ -1,0 +1,214 @@
+{
+  "localeCode": {
+    "message": "fr",
+    "description": "Service string: code of this locale folder. Used to detect which locale Chrome picked. Do not translate."
+  },
+  "extDescription": {
+    "message": "Dossiers et tri des favoris dans le nouvel onglet : interface personnalisable et synchronisation entre appareils",
+    "description": "Extension description in Chrome and the Web Store, max 132 characters."
+  },
+  "pageTitle": {
+    "message": "Nouvel onglet"
+  },
+  "settings": {
+    "message": "Paramètres"
+  },
+  "close": {
+    "message": "Fermer"
+  },
+  "searchPlaceholder": {
+    "message": "Rechercher ou saisir une URL"
+  },
+  "removeFromHistory": {
+    "message": "Supprimer de l’historique"
+  },
+  "add": {
+    "message": "Ajouter"
+  },
+  "delete": {
+    "message": "Supprimer"
+  },
+  "newBookmark": {
+    "message": "Nouveau favori"
+  },
+  "whatToAdd": {
+    "message": "Que voulez-vous ajouter"
+  },
+  "kindSite": {
+    "message": "Site"
+  },
+  "kindFolder": {
+    "message": "Dossier"
+  },
+  "siteUrlExample": {
+    "message": "Adresse du site (ex. : github.com)"
+  },
+  "nameOptional": {
+    "message": "Nom (facultatif)"
+  },
+  "folderName": {
+    "message": "Nom du dossier"
+  },
+  "editBookmark": {
+    "message": "Modifier le favori"
+  },
+  "name": {
+    "message": "Nom"
+  },
+  "siteUrl": {
+    "message": "Adresse du site"
+  },
+  "address": {
+    "message": "Adresse"
+  },
+  "logoUrl": {
+    "message": "URL du logo"
+  },
+  "logoUrlPlaceholder": {
+    "message": "URL du logo (vide = auto)"
+  },
+  "tileBackground": {
+    "message": "Fond de la vignette"
+  },
+  "customBgColor": {
+    "message": "Couleur de fond personnalisée"
+  },
+  "resetToAuto": {
+    "message": "Rétablir l’automatique"
+  },
+  "confirmDeleteItem": {
+    "message": "Supprimer « $TITLE$ » ?",
+    "placeholders": {
+      "title": {
+        "content": "$1",
+        "example": "GitHub"
+      }
+    }
+  },
+  "save": {
+    "message": "Enregistrer"
+  },
+  "editFolder": {
+    "message": "Modifier le dossier"
+  },
+  "folderColor": {
+    "message": "Couleur du dossier"
+  },
+  "customFolderColor": {
+    "message": "Couleur de dossier personnalisée"
+  },
+  "colorOpacity": {
+    "message": "Opacité de la couleur"
+  },
+  "resetColor": {
+    "message": "Réinitialiser la couleur"
+  },
+  "deleteFolder": {
+    "message": "Supprimer le dossier"
+  },
+  "confirmDeleteFolder": {
+    "message": "Supprimer le dossier « $TITLE$ » ?",
+    "placeholders": {
+      "title": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "showClock": {
+    "message": "Afficher la date et l’heure"
+  },
+  "language": {
+    "message": "Langue"
+  },
+  "languageAuto": {
+    "message": "Automatique ($LANG$)",
+    "placeholders": {
+      "lang": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "theme": {
+    "message": "Thème"
+  },
+  "themeLight": {
+    "message": "Clair"
+  },
+  "themeDark": {
+    "message": "Sombre"
+  },
+  "themeSystem": {
+    "message": "Système"
+  },
+  "cardSize": {
+    "message": "Taille des cartes"
+  },
+  "sizeCompact": {
+    "message": "Compact"
+  },
+  "sizeMedium": {
+    "message": "Moyen"
+  },
+  "sizeLarge": {
+    "message": "Grand"
+  },
+  "folderOpacity": {
+    "message": "Opacité des dossiers"
+  },
+  "glowIntensity": {
+    "message": "Intensité de la lueur"
+  },
+  "glowColor": {
+    "message": "Couleur de la lueur"
+  },
+  "wallpaper": {
+    "message": "Fond d’écran"
+  },
+  "wallpaperUpload": {
+    "message": "Charger un fond d’écran"
+  },
+  "wallpaperReplace": {
+    "message": "Changer le fond d’écran"
+  },
+  "wallpaperRemove": {
+    "message": "Retirer"
+  },
+  "foldersAndBookmarks": {
+    "message": "Dossiers et favoris"
+  },
+  "exportToFile": {
+    "message": "Exporter"
+  },
+  "importFromFile": {
+    "message": "Importer"
+  },
+  "exportHint": {
+    "message": "Exportez un fichier et envoyez-le à un ami : il aura les mêmes dossiers, favoris et apparence."
+  },
+  "importUnreadable": {
+    "message": "Impossible de lire le fichier : ce n’est pas un fichier de configuration."
+  },
+  "importNotConfig": {
+    "message": "Ce n’est pas un fichier de configuration DeskHub."
+  },
+  "importConfirm": {
+    "message": "L’importation remplacera vos dossiers et favoris actuels par ceux du fichier. Continuer ?"
+  },
+  "importAction": {
+    "message": "Importer"
+  },
+  "importFailed": {
+    "message": "Impossible d’importer le fichier."
+  },
+  "yes": {
+    "message": "Oui"
+  },
+  "cancel": {
+    "message": "Annuler"
+  },
+  "gotIt": {
+    "message": "Compris"
+  }
+}

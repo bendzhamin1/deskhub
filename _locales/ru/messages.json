@@ -1,0 +1,214 @@
+{
+  "localeCode": {
+    "message": "ru",
+    "description": "Service string: code of this locale folder. Used to detect which locale Chrome picked. Do not translate."
+  },
+  "extDescription": {
+    "message": "Папки и сортировка закладок на новой вкладке: кастомизация интерфейса и синхронизация рабочего пространства",
+    "description": "Extension description in Chrome and the Web Store, max 132 characters."
+  },
+  "pageTitle": {
+    "message": "Новая вкладка"
+  },
+  "settings": {
+    "message": "Настройки"
+  },
+  "close": {
+    "message": "Закрыть"
+  },
+  "searchPlaceholder": {
+    "message": "Введите запрос или адрес"
+  },
+  "removeFromHistory": {
+    "message": "Убрать из истории"
+  },
+  "add": {
+    "message": "Добавить"
+  },
+  "delete": {
+    "message": "Удалить"
+  },
+  "newBookmark": {
+    "message": "Новая закладка"
+  },
+  "whatToAdd": {
+    "message": "Что добавить"
+  },
+  "kindSite": {
+    "message": "Сайт"
+  },
+  "kindFolder": {
+    "message": "Папка"
+  },
+  "siteUrlExample": {
+    "message": "Адрес сайта (например, ozon.ru)"
+  },
+  "nameOptional": {
+    "message": "Название (необязательно)"
+  },
+  "folderName": {
+    "message": "Название папки"
+  },
+  "editBookmark": {
+    "message": "Изменить закладку"
+  },
+  "name": {
+    "message": "Название"
+  },
+  "siteUrl": {
+    "message": "Адрес сайта"
+  },
+  "address": {
+    "message": "Адрес"
+  },
+  "logoUrl": {
+    "message": "URL логотипа"
+  },
+  "logoUrlPlaceholder": {
+    "message": "URL логотипа (пусто — авто)"
+  },
+  "tileBackground": {
+    "message": "Фон плитки"
+  },
+  "customBgColor": {
+    "message": "Свой цвет фона"
+  },
+  "resetToAuto": {
+    "message": "Сбросить к авто"
+  },
+  "confirmDeleteItem": {
+    "message": "Удалить «$TITLE$»?",
+    "placeholders": {
+      "title": {
+        "content": "$1",
+        "example": "GitHub"
+      }
+    }
+  },
+  "save": {
+    "message": "Сохранить"
+  },
+  "editFolder": {
+    "message": "Изменить папку"
+  },
+  "folderColor": {
+    "message": "Цвет папки"
+  },
+  "customFolderColor": {
+    "message": "Свой цвет папки"
+  },
+  "colorOpacity": {
+    "message": "Прозрачность цвета"
+  },
+  "resetColor": {
+    "message": "Сбросить цвет"
+  },
+  "deleteFolder": {
+    "message": "Удалить папку"
+  },
+  "confirmDeleteFolder": {
+    "message": "Удалить папку «$TITLE$»?",
+    "placeholders": {
+      "title": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "showClock": {
+    "message": "Показывать дату и время"
+  },
+  "language": {
+    "message": "Язык"
+  },
+  "languageAuto": {
+    "message": "Автоматически ($LANG$)",
+    "placeholders": {
+      "lang": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "theme": {
+    "message": "Тема"
+  },
+  "themeLight": {
+    "message": "Светлая"
+  },
+  "themeDark": {
+    "message": "Тёмная"
+  },
+  "themeSystem": {
+    "message": "Как в системе"
+  },
+  "cardSize": {
+    "message": "Размер карточек"
+  },
+  "sizeCompact": {
+    "message": "Компактный"
+  },
+  "sizeMedium": {
+    "message": "Средний"
+  },
+  "sizeLarge": {
+    "message": "Крупный"
+  },
+  "folderOpacity": {
+    "message": "Прозрачность папок"
+  },
+  "glowIntensity": {
+    "message": "Сила свечения"
+  },
+  "glowColor": {
+    "message": "Цвет свечения"
+  },
+  "wallpaper": {
+    "message": "Обои"
+  },
+  "wallpaperUpload": {
+    "message": "Загрузить обои"
+  },
+  "wallpaperReplace": {
+    "message": "Заменить обои"
+  },
+  "wallpaperRemove": {
+    "message": "Убрать"
+  },
+  "foldersAndBookmarks": {
+    "message": "Папки и закладки"
+  },
+  "exportToFile": {
+    "message": "Экспорт в файл"
+  },
+  "importFromFile": {
+    "message": "Импорт из файла"
+  },
+  "exportHint": {
+    "message": "Экспортируйте файл и отправьте другу — у него будут те же папки, закладки и оформление."
+  },
+  "importUnreadable": {
+    "message": "Файл не читается — это не файл конфигурации."
+  },
+  "importNotConfig": {
+    "message": "Это не файл конфигурации DeskHub."
+  },
+  "importConfirm": {
+    "message": "Импорт заменит текущие папки и закладки данными из файла. Продолжить?"
+  },
+  "importAction": {
+    "message": "Импортировать"
+  },
+  "importFailed": {
+    "message": "Не удалось импортировать файл."
+  },
+  "yes": {
+    "message": "Да"
+  },
+  "cancel": {
+    "message": "Отмена"
+  },
+  "gotIt": {
+    "message": "Понятно"
+  }
+}

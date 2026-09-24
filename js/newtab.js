@@ -14,6 +14,7 @@
  */
 
 import { Storage } from "./storage.js";
+import { t, setLanguage, translateDocument, isRtl, locale, detectLanguage, LANGUAGES } from "./i18n.js";
 
 const root = document.getElementById("root");
 const grid = document.getElementById("grid");
@@ -42,9 +43,37 @@ const SIZES = {
   large:   { c: "208px", h: "128px", g: "22px", r: "26px", fr: "22px" }
 };
 
+/* Тема «Как в системе» — медиазапрос prefers-color-scheme. Chrome отвечает на
+ * него по своей настройке «Режим» (chrome://settings/appearance), которая по
+ * умолчанию повторяет тему ОС. Слушаем изменения — страница перекрашивается
+ * сразу, когда macOS/Windows переключается на тёмную тему (в т.ч. по расписанию). */
+const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+darkQuery.addEventListener("change", () => { if (state && state.settings.theme === "system") applyVars(); });
+
+/** Фактическая тема: "light" | "dark" (для "system" — по системе). */
+function resolvedTheme() {
+  const th = state.settings.theme;
+  if (th === "system") return darkQuery.matches ? "dark" : "light";
+  return th === "dark" ? "dark" : "light";
+}
+
+/* Запомнить для js/boot.js то, что нужно до первой отрисовки следующей вкладки. */
+function saveBootCache() {
+  try {
+    localStorage.setItem("deskhub:boot", JSON.stringify({
+      theme: state.settings.theme,
+      lang: document.documentElement.lang,
+      dir: document.documentElement.dir,
+      title: document.title
+    }));
+  } catch { /* localStorage недоступен — просто будет короткая вспышка */ }
+}
+
 function applyVars() {
   const st = state.settings;
-  const light = st.theme === "light";
+  const theme = resolvedTheme();
+  const light = theme === "light";
+  document.documentElement.setAttribute("data-theme", theme);
 
   const s = SIZES[st.cardSize] || SIZES.medium;
   root.style.setProperty("--card-size", s.c);
@@ -104,6 +133,7 @@ function applyVars() {
   set("--folder-border", t.folderBorder);
 
   applyWallpaper();
+  saveBootCache();
 }
 
 /* Свои обои поверх стандартного градиента. Сверху кладём лёгкую вуаль под тему,
@@ -113,11 +143,12 @@ function applyWallpaper() {
   // applyVars дёргает нас на каждое изменение настроек; сам фон зависит только
   // от картинки и темы — если они не менялись, не трогаем стиль (обои-data:URL
   // это мегабайтная строка, её переустановка не бесплатна)
-  const key = wallpaper ? state.settings.theme + "|" + wallpaper.length : "none";
+  const theme = resolvedTheme();
+  const key = wallpaper ? theme + "|" + wallpaper.length : "none";
   if (key === wallpaperKey) return;
   wallpaperKey = key;
   if (wallpaper) {
-    const veil = state.settings.theme === "light"
+    const veil = theme === "light"
       ? "linear-gradient(rgba(255,255,255,.28),rgba(255,255,255,.28))"
       : "linear-gradient(rgba(0,0,0,.42),rgba(0,0,0,.42))";
     bgEl.style.backgroundImage = `${veil}, url("${wallpaper}")`;
@@ -444,7 +475,7 @@ function renderCell(card, index) {
 
   setupCardDrag(cardEl, cell, card, index);
 
-  const label = el("div", { class: "ntp-card-label" }, card.type === "folder" ? card.title : (card.title || ""));
+  const label = el("div", { class: "ntp-card-label", dir: "auto" }, card.type === "folder" ? card.title : (card.title || ""));
   cell.appendChild(cardEl);
   cell.appendChild(label);
   return cell;
@@ -465,6 +496,14 @@ function renderEmptyCell() {
 /* ---------- drag&drop карточек верхнего уровня ---------- */
 
 let dragCardId = null;
+
+/* Курсор во второй половине ячейки по ходу чтения? В RTL (арабский) сетка
+ * идёт справа налево, и «после» — это левее середины. */
+function isAfter(e, node) {
+  const r = node.getBoundingClientRect();
+  const rightHalf = e.clientX > r.left + r.width / 2;
+  return isRtl() ? !rightHalf : rightHalf;
+}
 
 function setupCardDrag(cardEl, cell, card, index) {
   const cardId = card.id;
@@ -498,8 +537,7 @@ function setupCardDrag(cardEl, cell, card, index) {
       return;
     }
     cell.classList.remove("drop-into");
-    const r = cell.getBoundingClientRect();
-    const after = e.clientX > r.left + r.width / 2;
+    const after = isAfter(e, cell);
     cell.classList.toggle("drop-after", after);
     cell.classList.toggle("drop-before", !after);
   });
@@ -513,8 +551,7 @@ function setupCardDrag(cardEl, cell, card, index) {
       return;
     }
     // иначе — перестановка в сетке
-    const r = cell.getBoundingClientRect();
-    const after = e.clientX > r.left + r.width / 2;
+    const after = isAfter(e, cell);
     let target = index + (after ? 1 : 0);
     const from = state.cards.findIndex((c) => c.id === dragCardId);
     if (from < target) target -= 1; // компенсация удаления исходного элемента
@@ -553,8 +590,8 @@ function openFolder(folder, cardEl) {
 
   // шапка — только название и крестик (иконку папки убрали)
   const head = el("div", { class: "ntp-folder-head" }, [
-    el("div", { class: "ntp-folder-title" }, folder.title),
-    el("button", { class: "ntp-icbtn ntp-x", onClick: closeOverlay }, "×")
+    el("div", { class: "ntp-folder-title", dir: "auto" }, folder.title),
+    closeBtn()
   ]);
 
   // плитки
@@ -563,7 +600,7 @@ function openFolder(folder, cardEl) {
   // плитка "добавить"
   const addTile = el("div", { class: "ntp-mtile ntp-mtile-add", onClick: () => openAddModal(folder.id) }, [
     el("div", { class: "ntp-mtile-ico" }, "+"),
-    el("div", { class: "ntp-mtile-name" }, "Добавить")
+    el("div", { class: "ntp-mtile-name" }, t("add"))
   ]);
   items.appendChild(addTile);
   setupFolderSort(items, folder); // живая DnD-сортировка плиток внутри папки
@@ -591,7 +628,7 @@ function openFolder(folder, cardEl) {
 function renderTile(folder, link, index) {
   const ico = el("div", { class: "ntp-mtile-ico" });
   paintIcon(ico, link, 60, null);
-  const del = el("button", { class: "ntp-del", title: "Удалить" }, "×");
+  const del = el("button", { class: "ntp-del", title: t("delete"), "aria-label": t("delete") }, "×");
   del.addEventListener("click", async (e) => {
     e.stopPropagation();
     refresh(await Storage.deleteLink(folder.id, link.id));
@@ -606,7 +643,7 @@ function renderTile(folder, link, index) {
 
   const tile = el("div", { class: "ntp-mtile", draggable: "true", "data-link-id": link.id }, [
     ico,
-    el("div", { class: "ntp-mtile-name" }, link.title)
+    el("div", { class: "ntp-mtile-name", dir: "auto" }, link.title)
   ]);
   tile.addEventListener("click", (e) => {
     if (e.ctrlKey || e.metaKey) window.open(link.url, "_blank");
@@ -663,7 +700,8 @@ function flipMove(container, mutate) {
 
 /* Найти узел, ПЕРЕД которым вставить перетаскиваемую плитку, по позиции курсора.
  * Берём плитку с ближайшим к курсору центром; если курсор левее/выше центра —
- * вставляем перед ней, иначе — после. Работает и для многорядной сетки. */
+ * вставляем перед ней, иначе — после (в RTL — правее/выше). Работает и для
+ * многорядной сетки. */
 function tileInsertRef(container, x, y) {
   const tiles = [...container.querySelectorAll(".ntp-mtile:not(.dragging):not(.ntp-mtile-add)")];
   let best = null, bestD = Infinity, before = true;
@@ -673,7 +711,8 @@ function tileInsertRef(container, x, y) {
     const d = Math.hypot(x - cx, y - cy);
     if (d < bestD) {
       bestD = d; best = t;
-      before = y < cy - r.height / 2 || (Math.abs(y - cy) <= r.height / 2 && x < cx);
+      // в том же ряду «раньше» — левее центра (в RTL — правее)
+      before = y < cy - r.height / 2 || (Math.abs(y - cy) <= r.height / 2 && (isRtl() ? x > cx : x < cx));
     }
   }
   if (!best) return null;
@@ -715,13 +754,13 @@ function openAddModal(folderId) {
   const modal = el("div", { class: "ntp-settings-modal", onClick: (e) => e.stopPropagation() });
 
   modal.appendChild(el("div", { class: "ntp-settings-head" }, [
-    el("div", { class: "ntp-settings-title" }, intoFolder ? "Новая закладка" : "Добавить"),
-    el("button", { class: "ntp-icbtn ntp-x", onClick: closeOverlay }, "×")
+    el("div", { class: "ntp-settings-title" }, intoFolder ? t("newBookmark") : t("add")),
+    closeBtn()
   ]));
 
-  const urlInput = el("input", { class: "ntp-input", placeholder: "Адрес сайта (например, ozon.ru)" });
-  const nameInput = el("input", { class: "ntp-input", placeholder: "Название (необязательно)" });
-  const folderNameInput = el("input", { class: "ntp-input", placeholder: "Название папки" });
+  const urlInput = el("input", { class: "ntp-input", placeholder: t("siteUrlExample"), dir: "ltr" });
+  const nameInput = el("input", { class: "ntp-input", placeholder: t("nameOptional"), dir: "auto" });
+  const folderNameInput = el("input", { class: "ntp-input", placeholder: t("folderName"), dir: "auto" });
   const siteForm = el("div", {}, [urlInput, nameInput]);
   const folderForm = el("div", { style: "display:none" }, [folderNameInput]);
 
@@ -729,7 +768,7 @@ function openAddModal(folderId) {
   if (!intoFolder) {
     const group = el("div", { class: "ntp-seg-group" });
     const btns = {};
-    [["site", "Сайт"], ["folder", "Папка"]].forEach(([val, label]) => {
+    [["site", t("kindSite")], ["folder", t("kindFolder")]].forEach(([val, label]) => {
       const b = el("button", { class: "ntp-seg" + (val === "site" ? " active" : "") }, label);
       b.addEventListener("click", () => {
         mode = val;
@@ -742,14 +781,14 @@ function openAddModal(folderId) {
       btns[val] = b;
       group.appendChild(b);
     });
-    modal.appendChild(el("div", { class: "ntp-label" }, "Что добавить"));
+    modal.appendChild(el("div", { class: "ntp-label" }, t("whatToAdd")));
     modal.appendChild(group);
   }
 
   modal.appendChild(siteForm);
   modal.appendChild(folderForm);
 
-  const submit = el("button", { class: "ntp-btn-primary" }, "Добавить");
+  const submit = el("button", { class: "ntp-btn-primary" }, t("add"));
   const doSubmit = async () => {
     if (!intoFolder && mode === "folder") {
       const name = folderNameInput.value.trim();
@@ -823,12 +862,12 @@ function openAppearanceEditor(opts) {
 
   modal.appendChild(el("div", { class: "ntp-settings-head" }, [
     el("div", { class: "ntp-settings-title" }, titleText),
-    el("button", { class: "ntp-icbtn ntp-x", onClick: closeOverlay }, "×")
+    closeBtn()
   ]));
 
-  const titleInput = el("input", { class: "ntp-input", placeholder: "Название", value: entry.title || "" });
-  const urlInput = el("input", { class: "ntp-input", placeholder: "Адрес сайта", value: entry.url || "" });
-  const logoInput = el("input", { class: "ntp-input", placeholder: "URL логотипа (пусто — авто)", value: (entry.manual && entry.logo) ? entry.logo : "" });
+  const titleInput = el("input", { class: "ntp-input", placeholder: t("name"), value: entry.title || "", dir: "auto" });
+  const urlInput = el("input", { class: "ntp-input", placeholder: t("siteUrl"), value: entry.url || "", dir: "ltr" });
+  const logoInput = el("input", { class: "ntp-input", placeholder: t("logoUrlPlaceholder"), value: (entry.manual && entry.logo) ? entry.logo : "", dir: "ltr" });
   const colorInput = el("input", { class: "ntp-color", type: "color", value: toHex6(entry.iconColor || entry.bg) });
   const colorChk = el("input", { type: "checkbox" });
   colorChk.checked = !!(entry.manual && entry.iconColor);
@@ -852,27 +891,27 @@ function openAppearanceEditor(opts) {
   colorChk.addEventListener("change", repaint);
 
   modal.appendChild(el("div", { class: "ntp-edit-previewwrap" }, [preview]));
-  modal.appendChild(el("div", { class: "ntp-label" }, "Название"));
+  modal.appendChild(el("div", { class: "ntp-label" }, t("name")));
   modal.appendChild(titleInput);
-  modal.appendChild(el("div", { class: "ntp-label" }, "Адрес"));
+  modal.appendChild(el("div", { class: "ntp-label" }, t("address")));
   modal.appendChild(urlInput);
-  modal.appendChild(el("div", { class: "ntp-label" }, "URL логотипа"));
+  modal.appendChild(el("div", { class: "ntp-label" }, t("logoUrl")));
   modal.appendChild(logoInput);
-  modal.appendChild(el("div", { class: "ntp-label" }, "Фон плитки"));
+  modal.appendChild(el("div", { class: "ntp-label" }, t("tileBackground")));
   modal.appendChild(el("div", { class: "ntp-color-row" }, [
-    el("label", { class: "ntp-color-label" }, [colorChk, document.createTextNode(" Свой цвет фона")]),
+    el("label", { class: "ntp-color-label" }, [colorChk, document.createTextNode(t("customBgColor"))]),
     colorInput
   ]));
 
   modal.appendChild(el("div", { class: "ntp-btn-row" }, [
-    el("button", { class: "ntp-btn-ghost", onClick: () => onReset() }, "Сбросить к авто"),
+    el("button", { class: "ntp-btn-ghost", onClick: () => onReset() }, t("resetToAuto")),
     el("button", {
       class: "ntp-btn-ghost danger-text",
-      onClick: async () => { if (await confirmModal(`Удалить «${entry.title}»?`, "Удалить", true)) onDelete(); else openAppearanceEditor(opts); }
-    }, "Удалить")
+      onClick: async () => { if (await confirmModal(t("confirmDeleteItem", entry.title), t("delete"), true)) onDelete(); else openAppearanceEditor(opts); }
+    }, t("delete"))
   ]));
 
-  const save = el("button", { class: "ntp-btn-primary" }, "Сохранить");
+  const save = el("button", { class: "ntp-btn-primary" }, t("save"));
   save.addEventListener("click", () => {
     const logoV = logoInput.value.trim();
     const useColor = colorChk.checked;
@@ -903,11 +942,11 @@ function openFolderEditor(folder) {
   const scrim = el("div", { class: "ntp-scrim ntp-scrim--settings", onClick: closeOverlay });
   const modal = el("div", { class: "ntp-settings-modal", onClick: (e) => e.stopPropagation() });
   modal.appendChild(el("div", { class: "ntp-settings-head" }, [
-    el("div", { class: "ntp-settings-title" }, "Изменить папку"),
-    el("button", { class: "ntp-icbtn ntp-x", onClick: closeOverlay }, "×")
+    el("div", { class: "ntp-settings-title" }, t("editFolder")),
+    closeBtn()
   ]));
-  const titleInput = el("input", { class: "ntp-input", placeholder: "Название папки", value: folder.title || "" });
-  modal.appendChild(el("div", { class: "ntp-label" }, "Название"));
+  const titleInput = el("input", { class: "ntp-input", placeholder: t("folderName"), value: folder.title || "", dir: "auto" });
+  modal.appendChild(el("div", { class: "ntp-label" }, t("name")));
   modal.appendChild(titleInput);
 
   // цвет папки: чекбокс «свой цвет» + палитра + ползунок прозрачности этого цвета.
@@ -918,14 +957,14 @@ function openFolderEditor(folder) {
   const alphaVal = el("div", { class: "ntp-val" }, (folder.colorAlpha ?? 50) + "%");
   const alphaSlider = el("input", { class: "ntp-range", type: "range", min: 0, max: 100, value: (folder.colorAlpha ?? 50) });
   alphaSlider.addEventListener("input", () => { alphaVal.textContent = alphaSlider.value + "%"; colorChk.checked = true; alphaWrap.style.display = ""; });
-  alphaWrap.appendChild(el("div", { class: "ntp-row" }, [el("div", { class: "ntp-label", style: "margin-bottom:0" }, "Прозрачность цвета"), alphaVal]));
+  alphaWrap.appendChild(el("div", { class: "ntp-row" }, [el("div", { class: "ntp-label", style: "margin-bottom:0" }, t("colorOpacity")), alphaVal]));
   alphaWrap.appendChild(alphaSlider);
   // выбор цвета включает «свой цвет» и показывает ползунок
   colorInput.addEventListener("input", () => { colorChk.checked = true; alphaWrap.style.display = ""; });
   colorChk.addEventListener("change", () => { alphaWrap.style.display = colorChk.checked ? "" : "none"; });
-  modal.appendChild(el("div", { class: "ntp-label" }, "Цвет папки"));
+  modal.appendChild(el("div", { class: "ntp-label" }, t("folderColor")));
   modal.appendChild(el("div", { class: "ntp-color-row" }, [
-    el("label", { class: "ntp-color-label" }, [colorChk, document.createTextNode(" Свой цвет папки")]),
+    el("label", { class: "ntp-color-label" }, [colorChk, document.createTextNode(t("customFolderColor"))]),
     colorInput
   ]));
   modal.appendChild(alphaWrap);
@@ -935,13 +974,13 @@ function openFolderEditor(folder) {
     el("button", {
       class: "ntp-btn-ghost",
       onClick: async () => { closeOverlay(); refresh(await Storage.updateCard(folder.id, { color: null, colorAlpha: null })); }
-    }, "Сбросить цвет"),
+    }, t("resetColor")),
     el("button", {
       class: "ntp-btn-ghost danger-text",
-      onClick: async () => { if (await confirmModal(`Удалить папку «${folder.title}»?`, "Удалить", true)) { closeOverlay(); refresh(await Storage.deleteCard(folder.id)); } else openFolderEditor(folder); }
-    }, "Удалить папку")
+      onClick: async () => { if (await confirmModal(t("confirmDeleteFolder", folder.title), t("delete"), true)) { closeOverlay(); refresh(await Storage.deleteCard(folder.id)); } else openFolderEditor(folder); }
+    }, t("deleteFolder"))
   ]));
-  const save = el("button", { class: "ntp-btn-primary" }, "Сохранить");
+  const save = el("button", { class: "ntp-btn-primary" }, t("save"));
   save.addEventListener("click", async () => {
     closeOverlay();
     refresh(await Storage.updateCard(folder.id, {
@@ -959,7 +998,7 @@ function openFolderEditor(folder) {
 function openEditModal(card) {
   if (card.type === "folder") return openFolderEditor(card);
   openAppearanceEditor({
-    titleText: "Изменить закладку",
+    titleText: t("editBookmark"),
     entry: card,
     onSave: async (patch) => { closeOverlay(); refresh(await Storage.updateCard(card.id, patch)); },
     onReset: async () => { closeOverlay(); refresh(await Storage.updateCard(card.id, { manual: false, logo: null, iconColor: null, iconV: 0, iconTried: 0 })); },
@@ -978,7 +1017,7 @@ function reopenFolder(folderId) {
 
 function openEditLinkModal(folder, link) {
   openAppearanceEditor({
-    titleText: "Изменить закладку",
+    titleText: t("editBookmark"),
     entry: link,
     onSave: async (patch) => { state = await Storage.updateLink(folder.id, link.id, patch); reopenFolder(folder.id); },
     onReset: async () => { state = await Storage.updateLink(folder.id, link.id, { manual: false, logo: null, iconColor: null, iconV: 0, iconTried: 0 }); reopenFolder(folder.id); },
@@ -995,8 +1034,8 @@ function openSettings() {
 
   modal.appendChild(
     el("div", { class: "ntp-settings-head" }, [
-      el("div", { class: "ntp-settings-title" }, "Настройки"),
-      el("button", { class: "ntp-icbtn ntp-x", onClick: closeOverlay }, "×")
+      el("div", { class: "ntp-settings-title" }, t("settings")),
+      closeBtn()
     ])
   );
 
@@ -1013,26 +1052,42 @@ function openSettings() {
   }
 
   // часы и дата
-  modal.appendChild(toggleRow("Показывать дату и время", !!st.showClock, () => change({ showClock: !st.showClock })));
+  modal.appendChild(toggleRow(t("showClock"), !!st.showClock, () => change({ showClock: !st.showClock })));
+
+  // язык: «Автоматически (English)» + самоназвания языков
+  modal.appendChild(el("div", { class: "ntp-label" }, t("language")));
+  const autoName = (LANGUAGES.find((l) => l.code === detectLanguage()) || LANGUAGES[0]).name;
+  const langSelect = el("select", { class: "ntp-select" }, [
+    el("option", { value: "auto" }, t("languageAuto", autoName)),
+    ...LANGUAGES.map((l) => el("option", { value: l.code, lang: l.code.replace("_", "-"), dir: "auto" }, l.name))
+  ]);
+  langSelect.value = LANGUAGES.some((l) => l.code === st.language) ? st.language : "auto";
+  langSelect.addEventListener("change", async () => {
+    state = await Storage.updateSettings({ language: langSelect.value });
+    await applyLanguage();
+    renderGrid();
+    reopenSettings();
+  });
+  modal.appendChild(langSelect);
 
   // тема
-  modal.appendChild(el("div", { class: "ntp-label" }, "Тема"));
-  modal.appendChild(segGroup([["light", "Светлая"], ["dark", "Тёмная"]], st.theme, (v) => change({ theme: v })));
+  modal.appendChild(el("div", { class: "ntp-label" }, t("theme")));
+  modal.appendChild(segGroup([["light", t("themeLight")], ["dark", t("themeDark")], ["system", t("themeSystem")]], st.theme, (v) => change({ theme: v })));
 
   // размер
-  modal.appendChild(el("div", { class: "ntp-label" }, "Размер карточек"));
-  modal.appendChild(segGroup([["compact", "Компактный"], ["medium", "Средний"], ["large", "Крупный"]], st.cardSize, (v) => change({ cardSize: v })));
+  modal.appendChild(el("div", { class: "ntp-label" }, t("cardSize")));
+  modal.appendChild(segGroup([["compact", t("sizeCompact")], ["medium", t("sizeMedium")], ["large", t("sizeLarge")]], st.cardSize, (v) => change({ cardSize: v })));
 
   // прозрачность папок
-  modal.appendChild(rowLabel("Прозрачность папок", st.folderOpacity + "%"));
+  modal.appendChild(rowLabel(t("folderOpacity"), st.folderOpacity + "%"));
   modal.appendChild(range(0, 100, st.folderOpacity, (v) => change({ folderOpacity: v })));
 
   // сила свечения
-  modal.appendChild(rowLabel("Сила свечения", st.glowIntensity + "%"));
+  modal.appendChild(rowLabel(t("glowIntensity"), st.glowIntensity + "%"));
   modal.appendChild(range(0, 200, st.glowIntensity, (v) => change({ glowIntensity: v })));
 
   // цвет свечения
-  modal.appendChild(el("div", { class: "ntp-label", style: "margin-bottom:11px" }, "Цвет свечения"));
+  modal.appendChild(el("div", { class: "ntp-label", style: "margin-bottom:11px" }, t("glowColor")));
   const swatches = el("div", { class: "ntp-glow-group" });
   ["#ff5aaa", "#7c5cff", "#3fb6ff", "#ff8a4d", "#1fd6a6"].forEach((c) => {
     const sw = el("div", {
@@ -1045,28 +1100,27 @@ function openSettings() {
   modal.appendChild(swatches);
 
   // обои рабочего стола
-  modal.appendChild(el("div", { class: "ntp-label" }, "Обои"));
+  modal.appendChild(el("div", { class: "ntp-label" }, t("wallpaper")));
   const wpRow = el("div", { class: "ntp-btn-row" });
   wpRow.appendChild(el("button", {
     class: "ntp-btn-ghost",
     onClick: () => pickWallpaper(() => reopenSettings())
-  }, wallpaper ? "Заменить обои" : "Загрузить обои"));
+  }, wallpaper ? t("wallpaperReplace") : t("wallpaperUpload")));
   if (wallpaper) {
     wpRow.appendChild(el("button", {
       class: "ntp-btn-ghost",
       onClick: async () => { await Storage.clearWallpaper(); wallpaper = null; applyWallpaper(); reopenSettings(); }
-    }, "Убрать"));
+    }, t("wallpaperRemove")));
   }
   modal.appendChild(wpRow);
 
   // экспорт / импорт конфигурации (поделиться набором папок и закладок)
-  modal.appendChild(el("div", { class: "ntp-label" }, "Папки и закладки"));
+  modal.appendChild(el("div", { class: "ntp-label" }, t("foldersAndBookmarks")));
   const cfgRow = el("div", { class: "ntp-btn-row" });
-  cfgRow.appendChild(el("button", { class: "ntp-btn-ghost", onClick: exportConfig }, "Экспорт в файл"));
-  cfgRow.appendChild(el("button", { class: "ntp-btn-ghost", onClick: importConfig }, "Импорт из файла"));
+  cfgRow.appendChild(el("button", { class: "ntp-btn-ghost", onClick: exportConfig }, t("exportToFile")));
+  cfgRow.appendChild(el("button", { class: "ntp-btn-ghost", onClick: importConfig }, t("importFromFile")));
   modal.appendChild(cfgRow);
-  modal.appendChild(el("div", { class: "ntp-hint" },
-    "Экспортируйте файл и отправьте другу — у него будут те же папки, закладки и оформление."));
+  modal.appendChild(el("div", { class: "ntp-hint" }, t("exportHint")));
 
   scrim.appendChild(modal);
   showOverlay(scrim);
@@ -1130,7 +1184,7 @@ function downloadFile(filename, text, mime = "application/json") {
 function exportConfig() {
   const data = Storage.buildConfig(state, wallpaper);
   const stamp = new Date().toISOString().slice(0, 10);
-  downloadFile(`рабочий-стол-${stamp}.cfg`, JSON.stringify(data, null, 2));
+  downloadFile(`deskhub-${stamp}.cfg`, JSON.stringify(data, null, 2));
 }
 
 function importConfig() {
@@ -1142,33 +1196,30 @@ function importConfig() {
     if (!file) return;
     let data;
     try { data = JSON.parse(await file.text()); }
-    catch { return infoModal("Файл не читается — это не файл конфигурации."); }
+    catch { return infoModal(t("importUnreadable")); }
     // confirm() на странице новой вкладки заблокирован → своя модалка-подтверждение
-    const ok = await confirmModal(
-      "Импорт заменит текущие папки и закладки данными из файла. Продолжить?",
-      "Импортировать", true
-    );
+    const ok = await confirmModal(t("importConfirm"), t("importAction"), true);
     if (!ok) { openSettings(); return; }
     try {
       const r = await Storage.applyConfig(data);
       wallpaper = r.wallpaper;
       refresh(r.state); // applyVars → applyWallpaper подхватит и обои
     } catch (e) {
-      infoModal(e.message || "Не удалось импортировать файл.");
+      infoModal(e && e.code === "not-config" ? t("importNotConfig") : t("importFailed"));
     }
   });
   inp.click();
 }
 
 /* Подтверждение/инфо своими модалками (нативные confirm/alert на NTP не работают) */
-function confirmModal(message, okText = "Да", danger = false) {
+function confirmModal(message, okText = t("yes"), danger = false) {
   return new Promise((resolve) => {
     const done = (v) => { closeOverlay(); resolve(v); };
     const scrim = el("div", { class: "ntp-scrim ntp-scrim--settings", onClick: () => done(false) });
     const modal = el("div", { class: "ntp-settings-modal", onClick: (e) => e.stopPropagation() }, [
       el("div", { class: "ntp-confirm-text" }, message),
       el("div", { class: "ntp-confirm-row" }, [
-        el("button", { class: "ntp-btn-ghost", onClick: () => done(false) }, "Отмена"),
+        el("button", { class: "ntp-btn-ghost", onClick: () => done(false) }, t("cancel")),
         el("button", { class: "ntp-btn-primary" + (danger ? " danger" : ""), style: "margin-top:0;width:auto;padding:13px 22px", onClick: () => done(true) }, okText)
       ])
     ]);
@@ -1181,7 +1232,7 @@ function infoModal(message) {
   const scrim = el("div", { class: "ntp-scrim ntp-scrim--settings", onClick: closeOverlay });
   const modal = el("div", { class: "ntp-settings-modal", onClick: (e) => e.stopPropagation() }, [
     el("div", { class: "ntp-confirm-text" }, message),
-    el("button", { class: "ntp-btn-primary", onClick: closeOverlay }, "Понятно")
+    el("button", { class: "ntp-btn-primary", onClick: closeOverlay }, t("gotIt"))
   ]);
   scrim.appendChild(modal);
   showOverlay(scrim);
@@ -1212,6 +1263,9 @@ function range(min, max, value, onChange) {
 /* ---------- overlay helpers ---------- */
 
 function showOverlay(node) { overlay.innerHTML = ""; overlay.appendChild(node); }
+function closeBtn() {
+  return el("button", { class: "ntp-icbtn ntp-x", onClick: closeOverlay, title: t("close"), "aria-label": t("close") }, "×");
+}
 function closeOverlay() { overlay.innerHTML = ""; }
 
 /* ---------- поиск / переход ---------- */
@@ -1334,12 +1388,12 @@ function renderSuggest(items) {
     // сборка позволяла бы инъекцию разметки в страницу расширения.
     const row = el("div", { class: "ntp-suggest-item", "data-i": i }, [
       suggestIconEl(it),
-      el("span", { class: "ntp-suggest-text" }, it.label),
-      it.sub ? el("span", { class: "ntp-suggest-sub" }, it.sub) : null
+      el("span", { class: "ntp-suggest-text", dir: "auto" }, it.label),
+      it.sub ? el("span", { class: "ntp-suggest-sub", dir: "ltr" }, it.sub) : null
     ]);
     // у элементов истории — крестик «удалить из истории»
     if (it.kind === "history") {
-      const del = el("button", { class: "ntp-suggest-del", title: "Убрать из истории" }, "×");
+      const del = el("button", { class: "ntp-suggest-del", title: t("removeFromHistory"), "aria-label": t("removeFromHistory") }, "×");
       del.addEventListener("mousedown", async (e) => {
         e.preventDefault(); e.stopPropagation();
         queryHistory = await Storage.removeQuery(it.label);
@@ -1398,8 +1452,8 @@ let clockTimer = null;
 
 function tickClock() {
   const now = new Date();
-  clockTime.textContent = now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-  clockDate.textContent = now.toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" });
+  clockTime.textContent = now.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" });
+  clockDate.textContent = now.toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long" });
 }
 /* Тикаем не каждую секунду, а раз в минуту и ровно на границе минуты —
  * мы показываем только ЧЧ:ММ, поэтому будить таймер 60 раз в минуту незачем. */
@@ -1417,6 +1471,19 @@ function applyClock() {
 }
 
 /* ---------- инициализация ---------- */
+
+/* Язык из настроек (или автоопределение) → строки, lang/dir у <html>, статичная
+ * разметка. Часы перерисовываются сразу — у них формат даты зависит от языка. */
+let appliedLanguage = null;
+async function applyLanguage() {
+  const setting = state.settings.language || "auto";
+  if (setting === appliedLanguage) return;
+  appliedLanguage = setting;
+  await setLanguage(setting);
+  translateDocument();
+  applyClock();
+  saveBootCache();
+}
 
 function refresh(newState) {
   if (newState) state = newState;
@@ -1438,13 +1505,19 @@ async function init() {
   queryHistory = hist;
   wallpaper = wp;
   iconData = icons;
+  await applyLanguage();
   applyVars();
   applyClock();
   renderGrid();
   ensureIcons();
   searchInput.focus(); // курсор сразу в поиске — можно печатать без клика
-  // изменения с другого устройства (chrome.storage.sync)
-  Storage.onStateChanged((s) => { if (s) { state = s; applyVars(); applyClock(); renderGrid(); ensureIcons(); } });
+  // изменения с другого устройства (chrome.storage.sync); язык тоже синхронизируется
+  Storage.onStateChanged(async (s) => {
+    if (!s) return;
+    state = { ...state, ...s, settings: { ...state.settings, ...(s.settings || {}) } };
+    await applyLanguage();
+    applyVars(); applyClock(); renderGrid(); ensureIcons();
+  });
 }
 
 init();

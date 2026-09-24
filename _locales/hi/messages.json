@@ -1,0 +1,214 @@
+{
+  "localeCode": {
+    "message": "hi",
+    "description": "Service string: code of this locale folder. Used to detect which locale Chrome picked. Do not translate."
+  },
+  "extDescription": {
+    "message": "नए टैब पेज पर बुकमार्क के फ़ोल्डर और क्रम: अपने हिसाब से इंटरफ़ेस और डिवाइसों के बीच वर्कस्पेस सिंक",
+    "description": "Extension description in Chrome and the Web Store, max 132 characters."
+  },
+  "pageTitle": {
+    "message": "नया टैब"
+  },
+  "settings": {
+    "message": "सेटिंग्स"
+  },
+  "close": {
+    "message": "बंद करें"
+  },
+  "searchPlaceholder": {
+    "message": "खोजें या URL लिखें"
+  },
+  "removeFromHistory": {
+    "message": "इतिहास से हटाएं"
+  },
+  "add": {
+    "message": "जोड़ें"
+  },
+  "delete": {
+    "message": "हटाएं"
+  },
+  "newBookmark": {
+    "message": "नया बुकमार्क"
+  },
+  "whatToAdd": {
+    "message": "क्या जोड़ना है"
+  },
+  "kindSite": {
+    "message": "साइट"
+  },
+  "kindFolder": {
+    "message": "फ़ोल्डर"
+  },
+  "siteUrlExample": {
+    "message": "साइट का पता (जैसे github.com)"
+  },
+  "nameOptional": {
+    "message": "नाम (वैकल्पिक)"
+  },
+  "folderName": {
+    "message": "फ़ोल्डर का नाम"
+  },
+  "editBookmark": {
+    "message": "बुकमार्क बदलें"
+  },
+  "name": {
+    "message": "नाम"
+  },
+  "siteUrl": {
+    "message": "साइट का पता"
+  },
+  "address": {
+    "message": "पता"
+  },
+  "logoUrl": {
+    "message": "लोगो URL"
+  },
+  "logoUrlPlaceholder": {
+    "message": "लोगो URL (खाली = ऑटो)"
+  },
+  "tileBackground": {
+    "message": "टाइल का बैकग्राउंड"
+  },
+  "customBgColor": {
+    "message": "अपना बैकग्राउंड रंग"
+  },
+  "resetToAuto": {
+    "message": "ऑटो पर लौटाएं"
+  },
+  "confirmDeleteItem": {
+    "message": "“$TITLE$” हटाएं?",
+    "placeholders": {
+      "title": {
+        "content": "$1",
+        "example": "GitHub"
+      }
+    }
+  },
+  "save": {
+    "message": "सहेजें"
+  },
+  "editFolder": {
+    "message": "फ़ोल्डर बदलें"
+  },
+  "folderColor": {
+    "message": "फ़ोल्डर का रंग"
+  },
+  "customFolderColor": {
+    "message": "अपना फ़ोल्डर रंग"
+  },
+  "colorOpacity": {
+    "message": "रंग की अपारदर्शिता"
+  },
+  "resetColor": {
+    "message": "रंग रीसेट करें"
+  },
+  "deleteFolder": {
+    "message": "फ़ोल्डर हटाएं"
+  },
+  "confirmDeleteFolder": {
+    "message": "फ़ोल्डर “$TITLE$” हटाएं?",
+    "placeholders": {
+      "title": {
+        "content": "$1",
+        "example": "Work"
+      }
+    }
+  },
+  "showClock": {
+    "message": "तारीख और समय दिखाएं"
+  },
+  "language": {
+    "message": "भाषा"
+  },
+  "languageAuto": {
+    "message": "ऑटो ($LANG$)",
+    "placeholders": {
+      "lang": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "theme": {
+    "message": "थीम"
+  },
+  "themeLight": {
+    "message": "लाइट"
+  },
+  "themeDark": {
+    "message": "डार्क"
+  },
+  "themeSystem": {
+    "message": "सिस्टम"
+  },
+  "cardSize": {
+    "message": "कार्ड का आकार"
+  },
+  "sizeCompact": {
+    "message": "छोटा"
+  },
+  "sizeMedium": {
+    "message": "मध्यम"
+  },
+  "sizeLarge": {
+    "message": "बड़ा"
+  },
+  "folderOpacity": {
+    "message": "फ़ोल्डर की अपारदर्शिता"
+  },
+  "glowIntensity": {
+    "message": "चमक की तीव्रता"
+  },
+  "glowColor": {
+    "message": "चमक का रंग"
+  },
+  "wallpaper": {
+    "message": "वॉलपेपर"
+  },
+  "wallpaperUpload": {
+    "message": "वॉलपेपर अपलोड करें"
+  },
+  "wallpaperReplace": {
+    "message": "वॉलपेपर बदलें"
+  },
+  "wallpaperRemove": {
+    "message": "हटाएं"
+  },
+  "foldersAndBookmarks": {
+    "message": "फ़ोल्डर और बुकमार्क"
+  },
+  "exportToFile": {
+    "message": "फ़ाइल में एक्सपोर्ट करें"
+  },
+  "importFromFile": {
+    "message": "फ़ाइल से इम्पोर्ट करें"
+  },
+  "exportHint": {
+    "message": "फ़ाइल एक्सपोर्ट करके दोस्त को भेजें — उसे वही फ़ोल्डर, बुकमार्क और रूप-रंग मिलेगा।"
+  },
+  "importUnreadable": {
+    "message": "फ़ाइल पढ़ी नहीं जा सकी — यह कॉन्फ़िगरेशन फ़ाइल नहीं है।"
+  },
+  "importNotConfig": {
+    "message": "यह DeskHub की कॉन्फ़िगरेशन फ़ाइल नहीं है।"
+  },
+  "importConfirm": {
+    "message": "इम्पोर्ट करने पर आपके मौजूदा फ़ोल्डर और बुकमार्क फ़ाइल के डेटा से बदल जाएंगे। जारी रखें?"
+  },
+  "importAction": {
+    "message": "इम्पोर्ट करें"
+  },
+  "importFailed": {
+    "message": "फ़ाइल इम्पोर्ट नहीं हो सकी।"
+  },
+  "yes": {
+    "message": "हाँ"
+  },
+  "cancel": {
+    "message": "रद्द करें"
+  },
+  "gotIt": {
+    "message": "ठीक है"
+  }
+}
