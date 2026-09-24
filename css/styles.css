@@ -195,15 +195,6 @@ body {
   font-family: inherit;
 }
 .ntp-search-input::placeholder { color: var(--search-ph); }
-.ntp-search-go {
-  width: 40px; height: 40px;
-  border: none; background: transparent;
-  border-radius: 50%; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: background .12s ease;
-}
-.ntp-search-go:hover { background: rgba(0, 0, 0, .05); }
-
 /* выпадающие подсказки */
 .ntp-suggest {
   position: absolute;

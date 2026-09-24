@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "DeskHub",
-  "version": "0.1.4",
+  "version": "0.1.6",
   "description": "Папки и сортировка закладок на новой вкладке: кастомизация интерфейса и синхронизация рабочего пространства",
 
   "icons": {
@@ -15,13 +15,7 @@
   },
 
   "permissions": [
-    "storage"
-  ],
-
-  "host_permissions": [
-    "https://suggestqueries.google.com/*",
-    "https://duckduckgo.com/*",
-    "https://www.google.com/*",
-    "https://lens.google.com/*"
+    "storage",
+    "search"
   ]
 }

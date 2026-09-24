@@ -1015,14 +1015,6 @@ function openSettings() {
   // часы и дата
   modal.appendChild(toggleRow("Показывать дату и время", !!st.showClock, () => change({ showClock: !st.showClock })));
 
-  // поисковая система
-  modal.appendChild(el("div", { class: "ntp-label" }, "Поисковая система"));
-  modal.appendChild(selectRow(
-    [["google", "Google"], ["yandex", "Яндекс"], ["bing", "Bing"], ["ddg", "DuckDuckGo"]],
-    st.searchEngine || "google",
-    (v) => change({ searchEngine: v })
-  ));
-
   // тема
   modal.appendChild(el("div", { class: "ntp-label" }, "Тема"));
   modal.appendChild(segGroup([["light", "Светлая"], ["dark", "Тёмная"]], st.theme, (v) => change({ theme: v })));
@@ -1208,16 +1200,6 @@ function toggleRow(label, on, onToggle) {
   return el("div", { class: "ntp-toggle-row" }, [el("div", { class: "ntp-toggle-label" }, label), sw]);
 }
 
-function selectRow(options, current, onPick) {
-  const sel = el("select", { class: "ntp-select" });
-  options.forEach(([val, label]) => {
-    const opt = el("option", { value: val }, label);
-    if (val === current) opt.selected = true;
-    sel.appendChild(opt);
-  });
-  sel.addEventListener("change", (e) => onPick(e.target.value));
-  return sel;
-}
 function rowLabel(label, value) {
   return el("div", { class: "ntp-row" }, [el("div", { class: "ntp-label", style: "margin-bottom:0" }, label), el("div", { class: "ntp-val" }, value)]);
 }
@@ -1240,14 +1222,6 @@ function looksLikeUrl(q) {
 }
 function openUrl(url) { window.location.href = url; }
 
-/* поисковые системы (выбор — в настройках) */
-const ENGINES = {
-  google: { name: "Google",     url: (q) => "https://www.google.com/search?q=" + encodeURIComponent(q) },
-  yandex: { name: "Яндекс",     url: (q) => "https://yandex.ru/search/?text=" + encodeURIComponent(q) },
-  bing:   { name: "Bing",       url: (q) => "https://www.bing.com/search?q=" + encodeURIComponent(q) },
-  ddg:    { name: "DuckDuckGo", url: (q) => "https://duckduckgo.com/?q=" + encodeURIComponent(q) }
-};
-
 let queryHistory = []; // история поисковых запросов (кэш; источник — storage)
 
 function recordQuery(q) {
@@ -1257,13 +1231,19 @@ function recordQuery(q) {
   queryHistory = [q, ...queryHistory.filter((x) => x.toLowerCase() !== q.toLowerCase())].slice(0, 300);
 }
 
-/** Поиск запроса в выбранной (в настройках) системе. */
+/** Поиск запроса в поисковой системе, выбранной пользователем в самом Chrome.
+ * chrome.search.query отправляет запрос в систему по умолчанию из настроек
+ * браузера — своей мы не навязываем. Вне расширения (превью в обычной вкладке)
+ * chrome.search недоступен, поэтому там открываем Google напрямую. */
 function runSearch(q) {
   q = q.trim();
   if (!q) return;
-  const eng = ENGINES[state.settings.searchEngine] || ENGINES.google;
   recordQuery(q);
-  openUrl(eng.url(q));
+  if (typeof chrome !== "undefined" && chrome.search && chrome.search.query) {
+    chrome.search.query({ text: q, disposition: "CURRENT_TAB" });
+  } else {
+    openUrl("https://www.google.com/search?q=" + encodeURIComponent(q));
+  }
 }
 
 /** Переход по тому, что ввели: адрес → сайт, иначе → поиск. */
@@ -1311,58 +1291,14 @@ function historySuggestions(q) {
     .map((h) => ({ kind: "history", label: h }));
 }
 
-/* Поисковые подсказки из сети. Два источника:
-   1) Google suggest — лучшие подсказки, но нужен host_permissions (нет CORS-заголовка);
-   2) DuckDuckGo — запасной, отдаёт CORS-заголовок и работает даже без спец-прав.
-   Если первый ничего не вернул (ошибка/пусто) — пробуем второй. */
-async function googleSuggestions(q) {
-  const res = await fetch(
-    "https://suggestqueries.google.com/complete/search?client=firefox&hl=ru&q=" + encodeURIComponent(q),
-    { credentials: "omit" }
-  );
-  const data = await res.json();
-  return Array.isArray(data) && Array.isArray(data[1]) ? data[1] : [];
-}
-async function ddgSuggestions(q) {
-  const res = await fetch("https://duckduckgo.com/ac/?type=list&q=" + encodeURIComponent(q), { credentials: "omit" });
-  const data = await res.json();
-  // формат: ["query",["s1","s2",...]] (type=list) либо [{phrase:"..."}]
-  if (Array.isArray(data) && Array.isArray(data[1])) return data[1];
-  if (Array.isArray(data)) return data.map((o) => (typeof o === "string" ? o : o && o.phrase)).filter(Boolean);
-  return [];
-}
-async function remoteSuggestions(q) {
-  let list = [];
-  try { list = await googleSuggestions(q); } catch { /* ignore */ }
-  if (!list.length) {
-    try { list = await ddgSuggestions(q); } catch { /* ignore */ }
-  }
-  return list
-    .filter((s) => s && s.toLowerCase() !== q.toLowerCase())
-    .slice(0, 6)
-    .map((s) => ({ kind: "query", label: s }));
-}
-
-let suggSeq = 0;
-let remoteTimer = null;
-
-/* Мгновенная часть (без сети): запрос + история + свои закладки. */
+/* Подсказки строятся только из собственных данных пользователя: введённого
+ * запроса, истории поиска и своих закладок. Внешние поисковые сервисы не
+ * опрашиваются — расширение остаётся страницей новой вкладки и не обращается к
+ * сторонним поисковикам за подсказками. */
 function updateSuggestions() {
   const q = searchInput.value.trim();
   if (!q) return hideSuggest();
-  const base = [{ kind: "search", label: q }, ...historySuggestions(q), ...localSuggestions(q)];
-  renderSuggest(base);
-  // сетевые подсказки — с задержкой (дебаунс), чтобы не слать запрос на каждую букву
-  clearTimeout(remoteTimer);
-  remoteTimer = setTimeout(() => fetchRemoteSuggestions(q, base), 160);
-}
-
-async function fetchRemoteSuggestions(q, base) {
-  const seq = ++suggSeq;
-  const remote = await remoteSuggestions(q);
-  if (seq !== suggSeq || searchInput.value.trim() !== q) return; // запрос уже сменился
-  const seen = new Set(base.map((s) => s.label.toLowerCase()));
-  renderSuggest(base.concat(remote.filter((r) => !seen.has(r.label.toLowerCase()))));
+  renderSuggest([{ kind: "search", label: q }, ...historySuggestions(q), ...localSuggestions(q)]);
 }
 
 const searchSVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
@@ -1448,31 +1384,6 @@ document.getElementById("searchForm").addEventListener("submit", (e) => {
   if (suggActive >= 0) return chooseSuggestion(suggActive);
   hideSuggest();
   go(searchInput.value);
-});
-
-/* ---------- поиск по картинке (камера в строке) ---------- */
-
-const imgInput = document.getElementById("imgInput");
-document.getElementById("imgSearchBtn").addEventListener("click", () => imgInput.click());
-imgInput.addEventListener("change", async () => {
-  const file = imgInput.files && imgInput.files[0];
-  imgInput.value = ""; // чтобы повторный выбор того же файла снова сработал
-  if (!file) return;
-  try {
-    // Загружаем картинку в Google Lens и переходим на страницу результатов.
-    // Endpoint неофициальный — поэтому есть запасной вариант ниже.
-    const fd = new FormData();
-    fd.append("encoded_image", file, file.name || "image.png");
-    const res = await fetch("https://lens.google.com/v3/upload?stcs=" + Date.now(), {
-      method: "POST",
-      body: fd
-    });
-    if (res && res.url && /google\./.test(res.url)) { openUrl(res.url); return; }
-    throw new Error("unexpected response");
-  } catch {
-    // запасной путь: открыть Google Lens, куда картинку можно перетащить вручную
-    openUrl("https://lens.google.com/");
-  }
 });
 
 document.getElementById("settingsBtn").addEventListener("click", openSettings);

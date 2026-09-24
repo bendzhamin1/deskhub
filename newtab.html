@@ -47,18 +47,10 @@
           <div class="ntp-search">
             <input id="searchInput" class="ntp-search-input" placeholder="Введите запрос или адрес"
                    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-            <button type="button" id="imgSearchBtn" class="ntp-search-go" aria-label="Поиск по картинке" title="Поиск по картинке">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9z" stroke="#8a8a90" stroke-width="1.6" stroke-linejoin="round"></path>
-                <circle cx="12" cy="13" r="3.6" stroke="#8a8a90" stroke-width="1.6"></circle>
-              </svg>
-            </button>
           </div>
           <!-- выпадающие подсказки (заполняются из newtab.js) -->
           <div id="suggest" class="ntp-suggest" hidden></div>
         </form>
-        <!-- скрытый выбор файла для поиска по картинке -->
-        <input type="file" id="imgInput" accept="image/*" hidden />
 
         <div id="grid" class="ntp-grid"></div>
       </div>

@@ -54,8 +54,7 @@ const DEFAULT_STATE = {
     glow: "#7c5cff",
     glowIntensity: 100,
     folderOpacity: 45,
-    showClock: false,
-    searchEngine: "google"
+    showClock: false
   },
   cards: [] // изначально пусто — пользователь сам наполняет рабочий стол
 };
